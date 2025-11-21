@@ -1,0 +1,217 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 mb-0 d-flex align-items-center">
+            <div class="bg-warning text-white rounded-3 p-2 me-3"
+                style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            Phân tích thống kê
+        </h2>
+        <p class="text-muted mb-0 mt-1">Báo cáo chi tiết và phân tích kinh doanh</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary">
+            <i class="fas fa-download me-1"></i>
+            Xuất báo cáo
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card card-custom bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-white-50">Tổng doanh thu</h6>
+                        <h3 class="mb-0">
+                            <%= new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(data.totalRevenue) %>
+                        </h3>
+                        <small class="text-white-75">Thực tế (Đơn không hủy)</small>
+                    </div>
+                    <div class="text-white-50">
+                        <i class="fas fa-dollar-sign fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card card-custom bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-white-50">Đơn hàng thành công</h6>
+                        <h3 class="mb-0"><%= data.successfulOrdersCount %></h3>
+                        <small class="text-white-75">Đã giao / Hoàn thành</small>
+                    </div>
+                    <div class="text-white-50">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card card-custom bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-white-50">Khách hàng mới</h6>
+                        <h3 class="mb-0"><%= data.newCustomersCount %></h3>
+                        <small class="text-white-75">Trong tháng này</small>
+                    </div>
+                    <div class="text-white-50">
+                        <i class="fas fa-user-plus fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card card-custom bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-white-50">Tỉ lệ chuyển đổi</h6>
+                        <h3 class="mb-0"><%= data.conversionRate %></h3>
+                        <small class="text-white-75">Đơn / Khách hàng</small>
+                    </div>
+                    <div class="text-white-50">
+                        <i class="fas fa-percentage fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-8 mb-4">
+        <div class="card card-custom">
+            <div class="card-header bg-transparent">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-area me-2"></i>
+                    Biểu đồ doanh thu theo ngày (7 ngày qua)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+        <div class="card card-custom">
+            <div class="card-header bg-transparent">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Top sản phẩm bán chạy
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <% if (data.topProducts && data.topProducts.length > 0) { %>
+                        <% data.topProducts.forEach((product, index) => { %>
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary rounded-pill me-3"><%= index + 1 %></span>
+                                    <div>
+                                        <h6 class="mb-0 text-truncate" style="max-width: 150px;"><%= product.name %></h6>
+                                        <small class="text-muted"><%= new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price) %></small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-success"><%= product.qty %> đã bán</span>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="text-center text-muted py-3">Chưa có dữ liệu bán hàng</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        try {
+            // 1. Lấy dữ liệu an toàn
+            // Lưu ý: Dấu nháy đơn ' ' bao quanh là BẮT BUỘC
+            const rawLabels = '<%- JSON.stringify(data.chartLabels || []) %>';
+            const rawData = '<%- JSON.stringify(data.chartData || []) %>';
+
+            const chartLabels = JSON.parse(rawLabels);
+            const chartData = JSON.parse(rawData);
+
+            console.log("Labels:", chartLabels); // Kiểm tra trên Console của trình duyệt (F12)
+            console.log("Data:", chartData);
+
+            // 2. Vẽ biểu đồ
+            const ctx = document.getElementById('revenueChart'); // Đảm bảo ID này khớp với thẻ canvas ở trên
+            
+            if (ctx) {
+                new Chart(ctx.getContext('2d'), {
+                    type: 'line', 
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'Doanh thu (VNĐ)',
+                            data: chartData,
+                            borderColor: '#0d6efd', // Màu xanh Bootstrap
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3, // Đường cong mềm mại
+                            fill: true,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#0d6efd',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { borderDash: [2, 4], color: '#e9ecef' },
+                                ticks: {
+                                    callback: function(value) {
+                                        return new Intl.NumberFormat('vi-VN', { notation: "compact" }).format(value) + 'đ';
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.error("Không tìm thấy thẻ canvas có id='revenueChart'");
+            }
+        } catch (e) {
+            console.error("Lỗi vẽ biểu đồ:", e);
+        }
+    });
+</script>

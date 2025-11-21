@@ -1,0 +1,190 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 mb-0 d-flex align-items-center">
+            <div class="bg-warning text-white rounded-3 p-2 me-3"
+                style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-star"></i>
+            </div>
+            Quản lý đánh giá
+        </h2>
+        <p class="text-muted mb-0 mt-1">Quản lý đánh giá và nhận xét của khách hàng</p>
+    </div>
+</div>
+
+<div class="card card-custom mb-4">
+    <div class="card-body">
+        <form method="GET" action="/admin/reviews" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">
+                    <i class="fas fa-search me-2 text-muted"></i> Tìm kiếm
+                </label>
+                <input type="text" class="form-control" name="search" placeholder="Tên sản phẩm, khách hàng...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-star me-2 text-muted"></i> Đánh giá
+                </label>
+                <select class="form-select" name="rating">
+                    <option value="">Tất cả đánh giá</option>
+                    <option value="5">5 sao</option>
+                    <option value="4">4 sao</option>
+                    <option value="3">3 sao</option>
+                    <option value="2">2 sao</option>
+                    <option value="1">1 sao</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-filter me-2 text-muted"></i> Trạng thái
+                </label>
+                <select class="form-select" name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="approved">Đã duyệt</option>
+                    <option value="pending">Chờ duyệt</option>
+                    <option value="rejected">Từ chối</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search"></i>
+                </button>
+                <a href="/admin/reviews" class="btn btn-outline-secondary">
+                    <i class="fas fa-refresh"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card card-custom">
+    <div class="card-header bg-transparent">
+        <h5 class="card-title mb-0">Danh sách đánh giá</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th width="50">
+                            <input type="checkbox" class="form-check-input" id="selectAll">
+                        </th>
+                        <th style="width: 25%;">Sản phẩm</th>
+                        <th style="width: 20%;">Khách hàng</th>
+                        <th style="width: 15%;">Đánh giá</th>
+                        <th style="width: 25%;">Nội dung</th>
+                        <th style="width: 10%;">Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (reviews && reviews.length > 0) { %>
+                        <% reviews.forEach(review => { %>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input review-checkbox" value="<%= review._id %>">
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="<%= (review.productDetails && review.productDetails.images && review.productDetails.images[0]) ? review.productDetails.images[0] : '/static/images/no-image.jpg' %>" 
+                                             class="rounded me-3" width="50" height="50" style="object-fit: cover;">
+                                        <div>
+                                            <div class="fw-medium text-truncate" style="max-width: 200px;">
+                                                <%= review.productDetails ? review.productDetails.name : '(Sản phẩm đã xóa)' %>
+                                            </div>
+                                            <small class="text-muted">
+                                                <%= review.productDetails ? review.productDetails.category : '' %>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-medium">
+                                        <%= review.userDetails ? (review.userDetails.name || review.userDetails.username) : '(Khách vãng lai)' %>
+                                    </div>
+                                    <small class="text-muted">
+                                        <%= review.userDetails ? review.userDetails.email : '' %>
+                                    </small>
+                                </td>
+                                <td>
+                                    <div class="text-warning">
+                                        <% for(let i=1; i<=5; i++) { %>
+                                            <i class="fas fa-star <%= i <= review.rating ? '' : 'text-muted opacity-25' %>"></i>
+                                        <% } %>
+                                        <span class="ms-2 fw-bold text-dark"><%= review.rating %>/5</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="mb-0 text-muted small fst-italic text-truncate" style="max-width: 250px;">
+                                        "<%= review.comment %>"
+                                    </p>
+                                    <small class="text-muted">
+                                        <%= new Date(review.createdAt || review.createAt).toLocaleDateString('vi-VN') %>
+                                    </small>
+                                </td>
+                                <td>
+                                    <% 
+                                    let badgeClass = 'bg-secondary';
+                                    let statusText = review.status;
+                                    if (review.status === 'approved') { badgeClass = 'bg-success'; statusText = 'Đã duyệt'; }
+                                    else if (review.status === 'pending') { badgeClass = 'bg-warning text-dark'; statusText = 'Chờ duyệt'; }
+                                    else if (review.status === 'rejected') { badgeClass = 'bg-danger'; statusText = 'Từ chối'; }
+                                    %>
+                                    <span class="badge <%= badgeClass %>"><%= statusText %></span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        
+                                        <% if (review.status === 'pending') { %>
+                                            <form action="/admin/reviews/approve/<%= review._id %>" method="POST" style="display: inline;">
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="Duyệt">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                        <% } %>
+
+                                        <a href="/admin/reviews/view/<%= review._id %>" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        <form action="/admin/reviews/delete/<%= review._id %>" method="POST" 
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');" 
+                                              style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-comments fa-3x mb-3 opacity-50"></i>
+                                    <p>Chưa có đánh giá nào.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Script xử lý chọn tất cả (Select All)
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.review-checkbox');
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAll.checked;
+                });
+            });
+        }
+    });
+</script>

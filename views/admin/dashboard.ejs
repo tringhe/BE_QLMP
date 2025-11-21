@@ -1,0 +1,375 @@
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h1 class="display-6 fw-bold mb-2" style="color: #111827;">
+            <i class="fas fa-chart-line me-3" style="color: #3b82f6;"></i>Dashboard
+        </h1>
+        <p class="text-muted fs-5 mb-0">Chào mừng trở lại! Đây là tổng quan cửa hàng mỹ phẩm của bạn.</p>
+    </div>
+    <div class="d-flex gap-3">
+        <button class="btn btn-outline-primary">
+            <i class="fas fa-download me-2"></i>Xuất Báo Cáo
+        </button>
+        <a href="/admin/products/add" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Thêm Sản Phẩm
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-xl-3 col-md-6">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div class="stats-number">
+                <%= stats.totalOrders %>
+            </div>
+            <div class="stats-label">Tổng Đơn Hàng</div>
+            <div class="mt-2">
+                <small class="text-success">
+                    <i class="fas fa-arrow-up me-1"></i>+12% so với tháng trước
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <div class="stats-number">
+                <%= stats.totalProducts %>
+            </div>
+            <div class="stats-label">Sản Phẩm</div>
+            <div class="mt-2">
+                <small class="text-info">
+                    <i class="fas fa-info-circle me-1"></i>Đang hoạt động
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stats-number">
+                <%= stats.totalUsers %>
+            </div>
+            <div class="stats-label">Khách Hàng</div>
+            <div class="mt-2">
+                <small class="text-success">
+                    <i class="fas fa-arrow-up me-1"></i>+8% tuần này
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stats-number">
+                <%= new Intl.NumberFormat('vi-VN', { style: 'currency' , currency: 'VND' , notation: 'compact'
+                    }).format(stats.totalRevenue) %>
+            </div>
+            <div class="stats-label">Tổng Doanh Thu</div>
+            <div class="mt-2">
+                <small class="text-success">
+                    <i class="fas fa-arrow-up me-1"></i>+15% so với tháng trước
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-8">
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1 fw-bold">
+                            <i class="fas fa-chart-area me-2 text-primary"></i>
+                            Xu Hướng Doanh Thu
+                        </h5>
+                        <p class="text-muted mb-0 fs-6">Doanh thu trong 7 ngày qua</p>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar me-1"></i>7 ngày
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">7 ngày</a></li>
+                            <li><a class="dropdown-item" href="#">30 ngày</a></li>
+                            <li><a class="dropdown-item" href="#">90 ngày</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <h5 class="mb-1 fw-bold">
+                    <i class="fas fa-chart-pie me-2 text-success"></i>
+                    Phân Bố Danh Mục
+                </h5>
+                <p class="text-muted mb-0 fs-6">Sản phẩm theo loại</p>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card card-custom">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    Đơn Hàng Gần Đây
+                </h5>
+                <a href="/admin/orders" class="btn btn-sm btn-outline-primary">
+                    Xem Tất Cả
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Khách Hàng</th>
+                                <th>Tổng Tiền</th>
+                                <th>Trạng Thái</th>
+                                <th>Ngày Đặt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (recentOrders.length===0) { %>
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                        Chưa có đơn hàng nào
+                                    </td>
+                                </tr>
+                            <% } else { %>
+                                <% recentOrders.forEach(order=> { %>
+                                    <tr>
+                                        <td>
+                                            <span class="fw-bold text-primary">#<%= order._id.toString().slice(-6).toUpperCase() %></span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                    <i class="fas fa-user text-muted"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">
+                                                        <% if (order.customerDetails) { %>
+                                                            <%= order.customerDetails.firstName %> <%= order.customerDetails.lastName %>
+                                                        <% } else { %>
+                                                            <%= order.firstName %> <%= order.lastName %>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success">
+                                                <%= new Intl.NumberFormat('vi-VN', { style: 'currency' ,
+                                                    currency: 'VND' }).format(order.totalPriceOrder) %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <% 
+                                                let statusClass = 'bg-secondary';
+                                                if(order.status === 'pending') statusClass = 'bg-warning';
+                                                else if(order.status === 'confirmed') statusClass = 'bg-info';
+                                                else if(order.status === 'shipped') statusClass = 'bg-primary';
+                                                else if(order.status === 'delivered') statusClass = 'bg-success';
+                                                else if(order.status === 'cancelled') statusClass = 'bg-danger';
+                                            %>
+                                            <span class="badge <%= statusClass %>">
+                                                <%= order.status %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <%= new Date(order.createAt).toLocaleDateString('vi-VN') %>
+                                            </small>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card card-custom">
+            <div class="card-header bg-transparent">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-fire me-2"></i>
+                    Sản Phẩm Mới Nhất
+                </h5>
+            </div>
+            <div class="card-body">
+                <% if (topProducts.length===0) { %>
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-box-open fa-2x mb-2"></i>
+                        <p>Chưa có sản phẩm nào</p>
+                    </div>
+                <% } else { %>
+                    <% topProducts.forEach((product, index)=> { %>
+                        <div class="d-flex align-items-center mb-3 border-bottom pb-2">
+                            <div class="position-relative me-3">
+                                <img src="<%= product.images && product.images[0] ? product.images[0] : '/static/images/no-image.jpg' %>"
+                                    alt="<%= product.name %>" class="rounded"
+                                    style="width: 50px; height: 50px; object-fit: cover;">
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 text-truncate" style="max-width: 180px;">
+                                    <%= product.name %>
+                                </h6>
+                                <small class="text-muted">
+                                    Danh mục: <%= product.category || 'Chưa phân loại' %>
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-success">
+                                    <%= new Intl.NumberFormat('vi-VN', { style: 'currency' , currency: 'VND'
+                                        }).format(product.price) %>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card card-custom">
+            <div class="card-header bg-transparent">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Thao Tác Nhanh
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/products/add" class="btn btn-outline-primary w-100 py-3">
+                            <i class="fas fa-plus fa-2x mb-2 d-block"></i>
+                            Thêm Sản Phẩm
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/orders/add" class="btn btn-outline-info w-100 py-3">
+                            <i class="fas fa-cart-plus fa-2x mb-2 d-block"></i>
+                            Tạo Đơn Hàng
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/users/add" class="btn btn-outline-success w-100 py-3">
+                            <i class="fas fa-user-plus fa-2x mb-2 d-block"></i>
+                            Thêm Khách Hàng
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/admin/products/export" class="btn btn-outline-warning w-100 py-3">
+                            <i class="fas fa-file-excel fa-2x mb-2 d-block"></i>
+                            Xuất Báo Cáo SP
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Lấy dữ liệu từ EJS và gán vào biến JS (để tránh lỗi Expression expected)
+    const revenueLabels = JSON.parse('<%- JSON.stringify(((stats && stats.revenueChart) || []).map(item => new Date(item._id).toLocaleDateString("vi-VN"))) %>');
+    const revenueData = JSON.parse('<%- JSON.stringify(((stats && stats.revenueChart) || []).map(item => item.revenue)) %>');
+    
+    const categoryLabels = JSON.parse('<%- JSON.stringify(((stats && stats.categoryChart) || []).map(item => item._id)) %>');
+    const categoryData = JSON.parse('<%- JSON.stringify(((stats && stats.categoryChart) || []).map(item => item.count)) %>');
+
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: revenueLabels,
+            datasets: [{
+                label: 'Doanh thu (VNĐ)',
+                data: revenueData,
+                borderColor: 'rgb(102, 126, 234)',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function (value) {
+                            return new Intl.NumberFormat('vi-VN', {
+                                style: 'currency', currency: 'VND', notation: 'compact'
+                            }).format(value);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: categoryLabels,
+            datasets: [{
+                data: categoryData,
+                backgroundColor: [
+                    '#667eea', '#764ba2', '#f093fb', '#f5576c', '#4ecdc4', '#45b7d1'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right' }
+            }
+        }
+    });
+</script>
