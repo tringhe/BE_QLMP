@@ -7,7 +7,7 @@ import fs from "fs";
 import path from "path";
 import ExcelJS from 'exceljs';
 import { reviewService } from "../services/reviewService.js";
-
+import { statisticModel } from "../models/statisticModel.js"; 
 
 // Dashboard
 // 
@@ -794,109 +794,57 @@ const viewUserDetails = async (req, res, next) => {
 };
 
 // Analytics
-// Analytics - Phân tích số liệu chi tiết
 const analytics = async (req, res, next) => {
   try {
-    // 1. Lấy dữ liệu thô từ Database
-    const [orders, users, products] = await Promise.all([
-      orderService.getAllOrders(), // Lấy tất cả đơn hàng
-      userService.getAllUsers(),   // Lấy tất cả khách hàng
-      productService.getAllProducts() // Lấy tất cả sản phẩm
+    // GỌI SONG SONG 12 CÂU TRUY VẤN (Promise.all cho nhanh)
+    const [
+        monthlyRevenue, orderStatusStats, topOrders,       // SV1
+        topSelling, brandStats, unsoldProducts,            // SV2
+        vipCustomers, cityStats, potentialCustomers,       // SV3
+        topRated, negativeReviews, recentReviews           // SV4
+    ] = await Promise.all([
+        statisticModel.getMonthlyRevenue(),
+        statisticModel.getOrderStatusStats(),
+        statisticModel.getTopOrders(),
+
+        statisticModel.getTopSellingProducts(),
+        statisticModel.getBrandStats(),
+        statisticModel.getUnsoldProducts(),
+
+        statisticModel.getVipCustomers(),
+        statisticModel.getCustomerByCity(),
+        statisticModel.getPotentialCustomers(),
+
+        statisticModel.getTopRatedProducts(),
+        statisticModel.getNegativeReviews(),
+        statisticModel.getRecentActivity()
     ]);
 
-    // --- A. TÍNH TOÁN CÁC THẺ SỐ LIỆU (CARDS) ---
-    
-    // 1. Tổng doanh thu (Chỉ tính đơn không bị hủy)
-    const totalRevenue = orders
-      .filter(o => o.status !== 'cancelled')
-      .reduce((sum, o) => sum + (o.totalPriceOrder || 0), 0);
+    // Chuẩn bị dữ liệu cho biểu đồ (SV1)
+    const chartLabels = monthlyRevenue.map(item => `T${item._id.Thang}/${item._id.Nam}`);
+    const chartData = monthlyRevenue.map(item => item.DoanhThu);
 
-    // 2. Đơn hàng thành công (Đã giao hoặc Đã hoàn thành)
-    const successfulOrdersCount = orders.filter(o => o.status === 'delivered' || o.status === 'completed').length;
-
-    // 3. Khách hàng mới (Đăng ký trong tháng này)
-    const currentMonth = new Date().getMonth();
-    const newCustomersCount = users.filter(u => {
-      const userDate = new Date(u.createdAt || u.createAt);
-      return userDate.getMonth() === currentMonth && u.role !== 'admin';
-    }).length;
-
-    // 4. Tỉ lệ chuyển đổi (Tạm tính: Số đơn hàng / Số khách hàng)
-    // (Thực tế cần Google Analytics, ở đây ta tính trung bình số đơn mỗi khách)
-    const totalCustomers = users.filter(u => u.role !== 'admin').length;
-    const conversionRate = totalCustomers > 0 ? (orders.length / totalCustomers).toFixed(1) : 0;
-
-
-    // --- B. TÍNH TOÁN BIỂU ĐỒ DOANH THU (7 NGÀY) ---
-    const revenueChartData = [];
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }); // VD: 19/11
-      days.push(dateStr);
-
-      // Tính tổng tiền của ngày đó
-      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-      
-      const dayRevenue = orders
-        .filter(o => {
-          const oDate = new Date(o.createAt);
-          return oDate >= dayStart && oDate < dayEnd && o.status !== 'cancelled';
-        })
-        .reduce((sum, o) => sum + (o.totalPriceOrder || 0), 0);
-
-      revenueChartData.push(dayRevenue);
-    }
-
-
-    // --- C. TÍNH TOÁN TOP SẢN PHẨM BÁN CHẠY ---
-    // Tạo một map để đếm số lượng bán của từng sản phẩm
-    const productSales = {};
-    
-    orders.forEach(order => {
-      if (order.status !== 'cancelled') {
-        order.listProduct.forEach(item => {
-          if (!productSales[item.name]) {
-            productSales[item.name] = { 
-                name: item.name, 
-                qty: 0, 
-                total: 0,
-                price: item.price // Lưu giá để hiển thị
-            };
-          }
-          productSales[item.name].qty += item.quantity;
-          productSales[item.name].total += item.totalPrice;
-        });
-      }
-    });
-
-    // Chuyển object thành mảng và sắp xếp giảm dần theo số lượng bán
-    const topSellingProducts = Object.values(productSales)
-      .sort((a, b) => b.qty - a.qty)
-      .slice(0, 5); // Lấy top 5
-
-
-    // --- D. GỬI DỮ LIỆU RA VIEW ---
+    // Đóng gói dữ liệu gửi ra View
     const analyticsData = {
-      totalRevenue,
-      successfulOrdersCount,
-      newCustomersCount,
-      conversionRate,
-      
-      // Dữ liệu biểu đồ
-      chartLabels: days,
-      chartData: revenueChartData,
-      
-      // Dữ liệu bảng top
-      topProducts: topSellingProducts
+        chartLabels, chartData, // Cho biểu đồ chính
+        
+        // SV1 Data
+        orderStatusStats, topOrders,
+        
+        // SV2 Data
+        topSelling, brandStats, unsoldProducts,
+        
+        // SV3 Data
+        vipCustomers, cityStats, potentialCustomers,
+        
+        // SV4 Data
+        topRated, negativeReviews, recentReviews
     };
 
     res.render("admin/analytics", {
-      title: "Phân tích thống kê",
+      title: "Phân tích thống kê & Báo cáo",
       currentPage: "analytics",
-      data: analyticsData, // Truyền biến 'data'
+      data: analyticsData,
       req,
     });
 
